@@ -1,47 +1,40 @@
-package org.firstinspires.ftc.teamcode.c_subsystems;
+package org.firstinspires.ftc.teamcode.c_subsystems
 
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Vector2d;
-import com.arcrobotics.ftclib.command.SubsystemBase;
-
-import org.firstinspires.ftc.teamcode.d_roadrunner.MecanumDrive;
+import com.acmerobotics.roadrunner.PoseVelocity2d
+import com.acmerobotics.roadrunner.Vector2d
+import com.arcrobotics.ftclib.command.SubsystemBase
+import org.firstinspires.ftc.teamcode._configs.MecanumConfig
 
 /**
- * A subsystem utilizing the {@link MecanumDrive} class. Handles robot movement and localization.
+ * A subsystem utilizing the [MecanumConfig] class. Handles robot movement and localization.
  */
-public class MecanumSubsystem extends SubsystemBase {
-
-    private final MecanumDrive drive;
-    private final boolean      isFieldCentric;
-
-    /**
-     * Constructor for MecanumSubsystem.
-     *
-     * @param drive          The MecanumDrive object controlling robot movement.
-     * @param isFieldCentric A boolean indicating if the robot operates in field-centric mode.
-     */
-    public MecanumSubsystem(MecanumDrive drive, boolean isFieldCentric) {
-        this.drive          = drive;
-        this.isFieldCentric = isFieldCentric;
-    }
-
+class MecanumSubsystem
+/**
+ * Constructor for MecanumSubsystem.
+ *
+ * @param drive The MecanumDrive object controlling robot movement.
+ */(internal val drive: MecanumConfig) : SubsystemBase() {
     /**
      * Updates the robot's pose estimate based on its odometry readings.
      */
-    public void updatePoseEstimate() {
-        drive.updatePoseEstimate();
+    fun updatePoseEstimate() {
+        drive.updatePoseEstimate()
     }
 
     /**
      * Drives the robot using the given joystick inputs.
      *
-     * @param leftY  The left joystick Y input.
-     * @param leftX  The left joystick X input.
-     * @param rightX The right joystick X input.
+     * @param Y The left joystick Y input (straight).
+     * @param X The left joystick X input (strafe).
+     * @param A The right joystick X input (rotation).
      */
-    public void drive(double leftY, double leftX, double rightX) {
+    fun setDrivePowers(Y: Double, X: Double, A: Double) {
         drive.setDrivePowers(
-            new PoseVelocity2d(new Vector2d(leftX, leftY), rightX));
+            PoseVelocity2d(Vector2d(X, Y), A)
+        )
     }
 
+    fun stopDrive() {
+        setDrivePowers(0.0, 0.0, 0.0)
+    }
 }

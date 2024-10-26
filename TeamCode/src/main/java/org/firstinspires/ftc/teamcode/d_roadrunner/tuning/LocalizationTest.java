@@ -8,17 +8,16 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode._configs.MecanumConfig;
 import org.firstinspires.ftc.teamcode.d_roadrunner.Drawing;
-import org.firstinspires.ftc.teamcode.d_roadrunner.MecanumDrive;
-import org.firstinspires.ftc.teamcode.d_roadrunner.TankDrive;
 
 public class LocalizationTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        if (TuningOpModes.DRIVE_CLASS.equals(MecanumDrive.class)) {
-            MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        if (TuningOpModes.DRIVE_CLASS.equals(MecanumConfig.class)) {
+            MecanumConfig drive = new MecanumConfig(hardwareMap, new Pose2d(0, 0, 0));
 
             waitForStart();
 
@@ -43,33 +42,7 @@ public class LocalizationTest extends LinearOpMode {
                 Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
                 FtcDashboard.getInstance().sendTelemetryPacket(packet);
             }
-        } else if (TuningOpModes.DRIVE_CLASS.equals(TankDrive.class)) {
-            TankDrive drive = new TankDrive(hardwareMap, new Pose2d(0, 0, 0));
-
-            waitForStart();
-
-            while (opModeIsActive()) {
-                drive.setDrivePowers(new PoseVelocity2d(
-                        new Vector2d(
-                                -gamepad1.left_stick_y,
-                                0.0
-                        ),
-                        -gamepad1.right_stick_x
-                ));
-
-                drive.updatePoseEstimate();
-
-                telemetry.addData("x", drive.pose.position.x);
-                telemetry.addData("y", drive.pose.position.y);
-                telemetry.addData("heading (deg)", Math.toDegrees(drive.pose.heading.toDouble()));
-                telemetry.update();
-
-                TelemetryPacket packet = new TelemetryPacket();
-                packet.fieldOverlay().setStroke("#3F51B5");
-                Drawing.drawRobot(packet.fieldOverlay(), drive.pose);
-                FtcDashboard.getInstance().sendTelemetryPacket(packet);
-            }
-        } else {
+        }  else {
             throw new RuntimeException();
         }
     }
