@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem
 import java.util.function.DoubleSupplier
 
 class MecanumCommand(
-    private val drive: MecanumSubsystem,
+    private val drive: MecanumSubsystem?,
     private val forwardInput: DoubleSupplier,
     private val strafeInput: DoubleSupplier,
     private val turnInput: DoubleSupplier
@@ -52,7 +52,7 @@ class MecanumCommand(
         )
         val (turnValue, _) = applyDeadzone(turnInput.asDouble * 0.8 * multiplier, 0.0, 0.1)
 
-        drive.setDrivePowers(forwardValue, strafeValue, turnValue)
+        drive?.setDrivePowers(forwardValue, strafeValue, turnValue)
     }
 
     private fun applyDeadzone(

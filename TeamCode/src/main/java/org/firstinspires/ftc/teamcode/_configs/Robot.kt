@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode._configs
 
 import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.roadrunner.Pose2d
 import com.arcrobotics.ftclib.command.InstantCommand
 import com.arcrobotics.ftclib.hardware.motors.Motor
 import com.arcrobotics.ftclib.hardware.motors.MotorEx
@@ -9,6 +10,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
+import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem
+
 
 /*
 * TYPE			NAME			ID		DESCRIPTION
@@ -43,18 +46,7 @@ class Robot @JvmOverloads constructor(hardwareMap: HardwareMap, isAuto: Boolean 
 
 
     // public IntakeSubsystem intakeSubsystem;
-    // public DriveSubsystem driveSubsystem;
-    /**
-     * Constructor to initialize the robot hardware components.
-     *
-     * @param hardwareMap The hardware map containing all the robot components.
-     * @param isAuto      A flag indicating whether the robot is in autonomous mode.
-     */
-    /**
-     * Constructor for the Robot class.
-     *
-     * @param hardwareMap The hardware map for accessing robot components.
-     */
+    var driveSubsystem: MecanumSubsystem? = null
     init {
         configureRobot(hardwareMap, isAuto)
 
@@ -82,6 +74,10 @@ class Robot @JvmOverloads constructor(hardwareMap: HardwareMap, isAuto: Boolean 
         lift!!.setRunMode(Motor.RunMode.VelocityControl)
         // Set zero power behavior to BRAKE when no power is applied
         lift!!.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
+
+
+        // Initialize subsystems
+        driveSubsystem = MecanumSubsystem(MecanumConfig(hardwareMap, Pose2d(0.0, 0.0,0.0)))
 
         // AUTO CONFIG  ------------------------------------------------------------------------------------------------
         if (isAuto) {

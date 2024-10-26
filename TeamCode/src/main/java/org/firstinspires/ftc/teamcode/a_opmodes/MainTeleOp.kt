@@ -7,6 +7,9 @@ import com.arcrobotics.ftclib.command.CommandOpMode
 import com.arcrobotics.ftclib.gamepad.GamepadEx
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import org.firstinspires.ftc.teamcode._configs.Robot
+import org.firstinspires.ftc.teamcode.b_commands.MecanumCommand
+
+
 
 //@Disabled
 @Config
@@ -23,5 +26,15 @@ class MainTeleOp : CommandOpMode() {
 
         // Set up gamepad controls
         val gamepad1Ex = GamepadEx(gamepad1)
+        val driveCommand = MecanumCommand(
+            robot!!.driveSubsystem,
+            { gamepad1Ex.leftY },
+            { gamepad1Ex.leftX },
+            { gamepad1Ex.rightX }
+        )
+
+        // Register and schedule commands
+        gamepad1Ex.readButtons()
+        schedule(driveCommand)
     }
 }
