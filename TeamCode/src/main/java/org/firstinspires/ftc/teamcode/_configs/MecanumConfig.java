@@ -20,7 +20,6 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.PoseVelocity2dDual;
 import com.acmerobotics.roadrunner.ProfileAccelConstraint;
 import com.acmerobotics.roadrunner.ProfileParams;
-import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.Time;
 import com.acmerobotics.roadrunner.TimeTrajectory;
 import com.acmerobotics.roadrunner.TimeTurn;
@@ -28,32 +27,20 @@ import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.TrajectoryBuilderParams;
 import com.acmerobotics.roadrunner.TurnConstraints;
 import com.acmerobotics.roadrunner.Twist2dDual;
-import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.Vector2dDual;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.DownsampledWriter;
-import com.acmerobotics.roadrunner.ftc.Encoder;
 import com.acmerobotics.roadrunner.ftc.FlightRecorder;
-import com.acmerobotics.roadrunner.ftc.LazyImu;
 import com.acmerobotics.roadrunner.ftc.LynxFirmware;
-import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
-import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
-import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.d_roadrunner.Drawing;
 import org.firstinspires.ftc.teamcode.d_roadrunner.Localizer;
 import org.firstinspires.ftc.teamcode.d_roadrunner.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.d_roadrunner.messages.MecanumCommandMessage;
-import org.firstinspires.ftc.teamcode.d_roadrunner.messages.MecanumLocalizerInputsMessage;
 import org.firstinspires.ftc.teamcode.d_roadrunner.messages.PoseMessage;
 
 import java.util.Arrays;
@@ -63,14 +50,6 @@ import java.util.List;
 @Config
 public final class MecanumConfig {
     public static class Params {
-        // IMU orientation
-        // TODO: fill in these values based on
-        //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
-        public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
-                RevHubOrientationOnRobot.LogoFacingDirection.UP;
-        public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
-
         // drive model parameters
         public double inPerTick = 1;
         public double lateralInPerTick = this.inPerTick;
@@ -78,17 +57,17 @@ public final class MecanumConfig {
 
         // feedforward parameters (in tick units)
         public double kS;
-        public double kV;
-        public double kA;
+        public double kV = 0.0124;
+        public double kA = 0.003;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
-        public double minProfileAccel = -30;
-        public double maxProfileAccel = 50;
+        public double maxWheelVel = 70.37239772566461;
+        public double minProfileAccel = -60;
+        public double maxProfileAccel = 80;
 
         // turn profile parameters (in radians)
-        public double maxAngVel = Math.PI; // shared with path
-        public double maxAngAccel = Math.PI;
+        public double maxAngVel = Math.toRadians(286.479); // shared with path
+        public double maxAngAccel = Math.toRadians(286.479);
 
         // path controller gains
         public double axialGain;
@@ -119,8 +98,6 @@ public final class MecanumConfig {
 
     public final VoltageSensor voltageSensor;
 
-    public final LazyImu lazyImu;
-
     public final Localizer localizer;
     public       Pose2d    pose;
 
@@ -131,90 +108,6 @@ public final class MecanumConfig {
     private final DownsampledWriter driveCommandWriter = new DownsampledWriter("DRIVE_COMMAND", 50_000_000);
     private final DownsampledWriter mecanumCommandWriter = new DownsampledWriter("MECANUM_COMMAND", 50_000_000);
 
-    public class DriveLocalizer implements Localizer {
-        public final Encoder leftFront, leftBack, rightBack, rightFront;
-        public final IMU imu;
-
-        private int lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
-        private Rotation2d lastHeading;
-        private boolean initialized;
-
-        public DriveLocalizer() {
-            this.leftFront = new OverflowEncoder(new RawEncoder(MecanumConfig.this.leftFront));
-            this.leftBack  = new OverflowEncoder(new RawEncoder(MecanumConfig.this.leftBack));
-            this.rightBack = new OverflowEncoder(new RawEncoder(MecanumConfig.this.rightBack));
-            this.rightFront = new OverflowEncoder(new RawEncoder(MecanumConfig.this.rightFront));
-
-            this.imu = MecanumConfig.this.lazyImu.get();
-
-            // TODO: reverse encoders if needed
-            //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        }
-
-        @Override
-        public Twist2dDual<Time> update() {
-            final PositionVelocityPair leftFrontPosVel = this.leftFront.getPositionAndVelocity();
-            final PositionVelocityPair leftBackPosVel  = this.leftBack.getPositionAndVelocity();
-            final PositionVelocityPair rightBackPosVel = this.rightBack.getPositionAndVelocity();
-            final PositionVelocityPair rightFrontPosVel = this.rightFront.getPositionAndVelocity();
-
-            final YawPitchRollAngles angles = this.imu.getRobotYawPitchRollAngles();
-
-            FlightRecorder.write("MECANUM_LOCALIZER_INPUTS", new MecanumLocalizerInputsMessage(
-                    leftFrontPosVel, leftBackPosVel, rightBackPosVel, rightFrontPosVel, angles));
-
-            final Rotation2d heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS));
-
-            if (!this.initialized) {
-                this.initialized = true;
-
-                this.lastLeftFrontPos = leftFrontPosVel.position;
-                this.lastLeftBackPos  = leftBackPosVel.position;
-                this.lastRightBackPos = rightBackPosVel.position;
-                this.lastRightFrontPos = rightFrontPosVel.position;
-
-                this.lastHeading = heading;
-
-                return new Twist2dDual<>(
-                        Vector2dDual.constant(new Vector2d(0.0, 0.0), 2),
-                        DualNum.constant(0.0, 2)
-                );
-            }
-
-            final double headingDelta = heading.minus(this.lastHeading);
-            final Twist2dDual<Time> twist = MecanumConfig.this.kinematics.forward(new MecanumKinematics.WheelIncrements<>(
-                    new DualNum<Time>(new double[]{
-                            (leftFrontPosVel.position - this.lastLeftFrontPos),
-                            leftFrontPosVel.velocity,
-                    }).times(MecanumConfig.PARAMS.inPerTick),
-                    new DualNum<Time>(new double[]{
-                            (leftBackPosVel.position - this.lastLeftBackPos),
-                            leftBackPosVel.velocity,
-                    }).times(MecanumConfig.PARAMS.inPerTick),
-                    new DualNum<Time>(new double[]{
-                            (rightBackPosVel.position - this.lastRightBackPos),
-                            rightBackPosVel.velocity,
-                    }).times(MecanumConfig.PARAMS.inPerTick),
-                    new DualNum<Time>(new double[]{
-                            (rightFrontPosVel.position - this.lastRightFrontPos),
-                            rightFrontPosVel.velocity,
-                    }).times(MecanumConfig.PARAMS.inPerTick)
-            ));
-
-            this.lastLeftFrontPos = leftFrontPosVel.position;
-            this.lastLeftBackPos  = leftBackPosVel.position;
-            this.lastRightBackPos = rightBackPosVel.position;
-            this.lastRightFrontPos = rightFrontPosVel.position;
-
-            this.lastHeading = heading;
-
-            return new Twist2dDual<>(
-                    twist.line,
-                    DualNum.cons(headingDelta, twist.angle.drop(1))
-            );
-        }
-    }
-
     public MecanumConfig(final HardwareMap hardwareMap, final Pose2d pose) {
         this.pose = pose;
 
@@ -224,7 +117,7 @@ public final class MecanumConfig {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        // TODO: make sure your config has motors with these names (or change them)
+        // make sure your config has motors with these names (or change them)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         this.leftFront = hardwareMap.get(DcMotorEx.class, "leftFront");
         this.leftBack  = hardwareMap.get(DcMotorEx.class, "leftBack");
@@ -236,17 +129,14 @@ public final class MecanumConfig {
         this.rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // TODO: reverse motor directions if needed
+        // reverse motor directions if needed
         //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        this.lazyImu = new LazyImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
-                MecanumConfig.PARAMS.logoFacingDirection, MecanumConfig.PARAMS.usbFacingDirection));
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
 
         this.voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
-        this.localizer = new DriveLocalizer();
+        this.localizer = new ThreeDeadWheelLocalizer(hardwareMap, PARAMS.inPerTick);
 
         FlightRecorder.write("MECANUM_PARAMS", MecanumConfig.PARAMS);
     }

@@ -24,11 +24,11 @@ class MecanumSubsystem
     /**
      * Drives the robot using the given joystick inputs.
      *
-     * @param Y The left joystick Y input (straight).
      * @param X The left joystick X input (strafe).
+     * @param Y The left joystick Y input (straight).
      * @param A The right joystick X input (rotation).
      */
-    fun setDrivePowers(Y: Double, X: Double, A: Double) {
+    fun setDrivePowers(X: Double, Y: Double, A: Double) {
         drive.setDrivePowers(
             PoseVelocity2d(Vector2d(X, Y), A)
         )

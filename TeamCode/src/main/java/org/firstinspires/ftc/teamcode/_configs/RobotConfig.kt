@@ -2,9 +2,6 @@ package org.firstinspires.ftc.teamcode._configs
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.roadrunner.Pose2d
-import com.arcrobotics.ftclib.command.InstantCommand
-import com.arcrobotics.ftclib.hardware.motors.Motor
-import com.arcrobotics.ftclib.hardware.motors.MotorEx
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.VoltageSensor
@@ -29,24 +26,15 @@ import org.firstinspires.ftc.teamcode.c_subsystems.MecanumSubsystem
  * This class represents the robot configuration and provides methods to initialize and control its
  * components.
  */
-class Robot @JvmOverloads constructor(hardwareMap: HardwareMap, isAuto: Boolean = false) {
+class RobotConfig @JvmOverloads constructor(hardwareMap: HardwareMap, isAuto: Boolean = false) {
     // Hardware components
-    var frontLeft: MotorEx? = null
-    var backLeft: MotorEx? = null
-    var frontRight: MotorEx? = null
-    var backRight: MotorEx? = null
-    var lift: MotorEx? = null
     var voltageSensor: VoltageSensor
     var dashboard: FtcDashboard = FtcDashboard.getInstance()
     var revHubs: List<LynxModule>
 
-    // INSTANT COMMANDS
-    var INTAKE_TOGGLE: InstantCommand? = null
-    var INTAKE_REVERSE: InstantCommand? = null
-
-
     // public IntakeSubsystem intakeSubsystem;
-    var driveSubsystem: MecanumSubsystem? = null
+    var mecanumSubsystem: MecanumSubsystem? = null
+
     init {
         configureRobot(hardwareMap, isAuto)
 
@@ -68,16 +56,8 @@ class Robot @JvmOverloads constructor(hardwareMap: HardwareMap, isAuto: Boolean 
      * @param isAuto      A flag indicating if the robot is in autonomous mode.
      */
     private fun configureRobot(hardwareMap: HardwareMap, isAuto: Boolean) {
-        // MOTORS   ------------------------------------------------------------------------------------------------
-        lift = MotorEx(hardwareMap, "lift", Motor.GoBILDA.RPM_312)
-        lift!!.resetEncoder()
-        lift!!.setRunMode(Motor.RunMode.VelocityControl)
-        // Set zero power behavior to BRAKE when no power is applied
-        lift!!.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE)
-
-
         // Initialize subsystems
-        driveSubsystem = MecanumSubsystem(MecanumConfig(hardwareMap, Pose2d(0.0, 0.0,0.0)))
+        mecanumSubsystem = MecanumSubsystem(MecanumConfig(hardwareMap, Pose2d(0.0, 0.0, 0.0)))
 
         // AUTO CONFIG  ------------------------------------------------------------------------------------------------
         if (isAuto) {

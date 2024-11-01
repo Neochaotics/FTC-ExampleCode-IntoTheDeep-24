@@ -9,18 +9,9 @@ class MecanumCommand(
     private val forwardInput: DoubleSupplier,
     private val strafeInput: DoubleSupplier,
     private val turnInput: DoubleSupplier
-) :
-    CommandBase() {
+) : CommandBase() {
     private var multiplier = 1.0
 
-    /**
-     * Constructor for MecanumCommand with a default multiplier of 1.0.
-     *
-     * @param drive   The drive subsystem this command will run on.
-     * @param forward The control input for driving forwards/backwards.
-     * @param strafe  The control input for driving left/right.
-     * @param turn    The control input for turning.
-     */
     init {
         addRequirements(drive)
     }
@@ -46,9 +37,7 @@ class MecanumCommand(
 
     override fun execute() {
         val (strafeValue, forwardValue) = applyDeadzone(
-            strafeInput.asDouble * 0.9 * multiplier,
-            -forwardInput.asDouble * 0.9 * multiplier,
-            0.1
+            strafeInput.asDouble * 0.9 * multiplier, -forwardInput.asDouble * 0.9 * multiplier, 0.1
         )
         val (turnValue, _) = applyDeadzone(turnInput.asDouble * 0.8 * multiplier, 0.0, 0.1)
 
@@ -56,9 +45,7 @@ class MecanumCommand(
     }
 
     private fun applyDeadzone(
-        inputX: Double,
-        inputY: Double,
-        deadzone: Double
+        inputX: Double, inputY: Double, deadzone: Double
     ): Pair<Double, Double> {
         var d2 = Math.pow(inputX, 2.0) + Math.pow(inputY, 2.0)
 

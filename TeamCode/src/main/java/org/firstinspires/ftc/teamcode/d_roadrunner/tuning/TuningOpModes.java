@@ -17,6 +17,7 @@ import com.acmerobotics.roadrunner.ftc.LateralRampLogger;
 import com.acmerobotics.roadrunner.ftc.ManualFeedforwardTuner;
 import com.acmerobotics.roadrunner.ftc.MecanumMotorDirectionDebugger;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
@@ -28,7 +29,7 @@ import org.firstinspires.ftc.teamcode._configs.ThreeDeadWheelLocalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+@Disabled
 public final class TuningOpModes {
     // TODO: change this to TankDrive.class if you're using tank
     public static final Class<?> DRIVE_CLASS = MecanumConfig.class;
@@ -57,13 +58,7 @@ public final class TuningOpModes {
 
                 List<Encoder> leftEncs = new ArrayList<>(), rightEncs = new ArrayList<>();
                 List<Encoder> parEncs = new ArrayList<>(), perpEncs = new ArrayList<>();
-                if (md.localizer instanceof MecanumConfig.DriveLocalizer) {
-                    MecanumConfig.DriveLocalizer dl = (MecanumConfig.DriveLocalizer) md.localizer;
-                    leftEncs.add(dl.leftFront);
-                    leftEncs.add(dl.leftBack);
-                    rightEncs.add(dl.rightFront);
-                    rightEncs.add(dl.rightBack);
-                } else if (md.localizer instanceof ThreeDeadWheelLocalizer) {
+                if (md.localizer instanceof ThreeDeadWheelLocalizer) {
                     ThreeDeadWheelLocalizer dl = (ThreeDeadWheelLocalizer) md.localizer;
                     parEncs.add(dl.par0);
                     parEncs.add(dl.par1);
